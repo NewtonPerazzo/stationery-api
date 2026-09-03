@@ -59,7 +59,13 @@ class CommissionService:
     PERCENT_DIVISOR = Decimal('100')
 
     @classmethod
-    def build_report(cls, start_date, end_date):
+    def build_report(
+        cls,
+        start_date,
+        end_date,
+        search='',
+        ordering='seller_name',
+    ):
         """Retorna totais por vendedor e o total geral do período."""
         current_timezone = timezone.get_current_timezone()
 
@@ -110,6 +116,25 @@ class CommissionService:
                 sellers[sale.seller_id]['commission_total'] += commission
 
         seller_results = list(sellers.values())
+
+        # A busca é aplicada no backend depois do cálculo e antes do total geral.
+        normalized_search = search.strip().casefold()
+        if normalized_search:
+            seller_results = [
+                seller
+                for seller in seller_results
+                if normalized_search in seller['seller_name'].casefold()
+            ]
+
+        # Primeiro ordena por nome para desempates previsíveis.
+        seller_results.sort(key=lambda seller: seller['seller_name'].casefold())
+
+        if ordering in ('commission_total', '-commission_total'):
+            seller_results.sort(
+                key=lambda seller: seller['commission_total'],
+                reverse=ordering.startswith('-'),
+            )
+
         grand_total = sum(
             (seller['commission_total'] for seller in seller_results),
             start=Decimal('0.00'),

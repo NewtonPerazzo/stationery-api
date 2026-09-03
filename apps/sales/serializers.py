@@ -146,10 +146,19 @@ class SaleWriteSerializer(serializers.ModelSerializer):
 
 
 class CommissionReportQuerySerializer(serializers.Serializer):
-    """Valida os parâmetros recebidos pela query string."""
+    """Valida filtros e ordenação recebidos pela query string."""
 
     start_date = serializers.DateField()
     end_date = serializers.DateField()
+    search = serializers.CharField(
+        required=False,
+        allow_blank=True,
+        default='',
+    )
+    ordering = serializers.ChoiceField(
+        choices=('seller_name', 'commission_total', '-commission_total'),
+        default='seller_name',
+    )
 
     def validate(self, attrs):
         """Garante que o intervalo esteja em ordem cronológica."""

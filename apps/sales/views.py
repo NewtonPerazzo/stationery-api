@@ -1,3 +1,8 @@
+from decimal import Decimal
+
+from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
+from django.db.models.functions import Coalesce
+from rest_framework.filters import OrderingFilter, SearchFilter
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
@@ -13,6 +18,12 @@ from .serializers import (
 from .services import CommissionService
 
 
+item_total = ExpressionWrapper(
+    F('items__quantity') * F('items__unit_price'),
+    output_field=DecimalField(max_digits=14, decimal_places=2),
+)
+
+
 class WeekdayCommissionRuleViewSet(ModelViewSet):
     queryset = WeekdayCommissionRule.objects.all()
     serializer_class = WeekdayCommissionRuleSerializer
@@ -21,9 +32,24 @@ class WeekdayCommissionRuleViewSet(ModelViewSet):
 class SaleViewSet(ModelViewSet):
     queryset = (
         Sale.objects
+        .annotate(
+            total_amount=Coalesce(
+                Sum(item_total),
+                Value(Decimal('0.00')),
+                output_field=DecimalField(max_digits=14, decimal_places=2),
+            ),
+        )
         .select_related('customer', 'seller')
         .prefetch_related('items__product')
     )
+    filter_backends = (SearchFilter, OrderingFilter)
+    search_fields = (
+        'invoice_number',
+        'customer__name',
+        'seller__name',
+    )
+    ordering_fields = ('invoice_number', 'total_amount')
+    ordering = ('invoice_number',)
 
     def get_serializer_class(self):
         if self.action in ('create', 'update', 'partial_update'):
@@ -41,11 +67,14 @@ class CommissionReportView(APIView):
             data=request.query_params,
         )
         query_serializer.is_valid(raise_exception=True)
+        filters = query_serializer.validated_data
 
         # A view coordena o HTTP, mas não calcula nenhuma comissão.
         report = CommissionService.build_report(
-            start_date=query_serializer.validated_data['start_date'],
-            end_date=query_serializer.validated_data['end_date'],
+            start_date=filters['start_date'],
+            end_date=filters['end_date'],
+            search=filters['search'],
+            ordering=filters['ordering'],
         )
 
         response_serializer = CommissionReportSerializer(report)

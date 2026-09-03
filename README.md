@@ -10,6 +10,8 @@ Backend do desafio técnico da papelaria, construído com Django e Django REST F
 - Django REST Framework 3.16.1
 - django-cors-headers 4.9.0
 - django-environ 0.12.1
+- psycopg 3.3.5
+- PostgreSQL (servidor local ou remoto)
 
 As versões diretas da aplicação estão fixadas em `requirements.txt`. Dependências transitivas são resolvidas pelo `pip`.
 
@@ -28,6 +30,12 @@ python manage.py runserver
 ```
 
 A API será executada em `http://localhost:8000` e o Django Admin em `http://localhost:8000/admin/`.
+
+Antes de executar as migrations, crie um banco PostgreSQL chamado `stationery`. A configuração padrão de desenvolvimento espera o usuário `postgres`, senha `postgres`, host `localhost` e porta `5432`. Caso sua instalação use outros valores, altere `DATABASE_URL` no arquivo `.env`:
+
+```dotenv
+DATABASE_URL=postgresql://usuario:senha@localhost:5432/stationery
+```
 
 ## Configuração
 

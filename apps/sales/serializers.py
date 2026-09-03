@@ -143,3 +143,42 @@ class SaleWriteSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         return SaleService.update(instance, validated_data)
+
+
+class CommissionReportQuerySerializer(serializers.Serializer):
+    """Valida os parâmetros recebidos pela query string."""
+
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
+
+    def validate(self, attrs):
+        """Garante que o intervalo esteja em ordem cronológica."""
+        if attrs['start_date'] > attrs['end_date']:
+            raise serializers.ValidationError({
+                'end_date': 'A data final deve ser igual ou posterior à inicial.',
+            })
+
+        return attrs
+
+
+class SellerCommissionSerializer(serializers.Serializer):
+    """Representa o total calculado para um vendedor."""
+
+    seller_id = serializers.IntegerField()
+    seller_name = serializers.CharField()
+    commission_total = serializers.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+
+
+class CommissionReportSerializer(serializers.Serializer):
+    """Define o contrato JSON retornado pelo relatório."""
+
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
+    sellers = SellerCommissionSerializer(many=True)
+    grand_total = serializers.DecimalField(
+        max_digits=16,
+        decimal_places=2,
+    )

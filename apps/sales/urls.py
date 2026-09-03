@@ -1,6 +1,11 @@
+from django.urls import path
 from rest_framework.routers import SimpleRouter
 
-from .views import SaleViewSet, WeekdayCommissionRuleViewSet
+from .views import (
+    CommissionReportView,
+    SaleViewSet,
+    WeekdayCommissionRuleViewSet,
+)
 
 
 router = SimpleRouter()
@@ -11,4 +16,11 @@ router.register(
     basename='commission-rule',
 )
 
-urlpatterns = router.urls
+urlpatterns = [
+    path(
+        'commissions/',
+        CommissionReportView.as_view(),
+        name='commission-report',
+    ),
+    *router.urls,
+]

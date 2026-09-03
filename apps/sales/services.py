@@ -31,15 +31,25 @@ class SaleService:
 
         sale.save()
 
+        # Quando "items" não vem na requisição, mantemos os itens atuais.
+        # Quando ele vem, entendemos que representa a nova lista completa da venda.
         if items_data is not None:
+            # Remove somente os SaleItems relacionados à venda.
+            # A venda e os produtos cadastrados não são excluídos.
             sale.items.all().delete()
+
+            # Cria os novos itens e registra neles o preço e a comissão atuais
+            # dos produtos, preservando esses valores como histórico da venda.
             SaleService._replace_items(sale, items_data)
 
         return sale
 
     @staticmethod
     def _replace_items(sale, items_data):
-        """Copia para os itens o preço e a comissão atuais dos produtos."""
+        """Cria os itens recebidos para a venda informada."""
+
+        # O preço e a comissão são copiados do produto para o SaleItem.
+        # Assim, mudanças futuras no produto não alteram vendas antigas.
         SaleItem.objects.bulk_create([
             SaleItem(
                 sale=sale,

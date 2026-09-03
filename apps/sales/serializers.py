@@ -170,6 +170,22 @@ class CommissionReportQuerySerializer(serializers.Serializer):
         return attrs
 
 
+class ProductCommissionDetailSerializer(serializers.Serializer):
+    """Representa os valores de comissão agrupados por produto."""
+
+    product_id = serializers.IntegerField()
+    product_name = serializers.CharField()
+    quantity = serializers.IntegerField()
+    total_amount = serializers.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+    commission_total = serializers.DecimalField(
+        max_digits=14,
+        decimal_places=2,
+    )
+
+
 class SellerCommissionSerializer(serializers.Serializer):
     """Representa o total calculado para um vendedor."""
 
@@ -179,6 +195,7 @@ class SellerCommissionSerializer(serializers.Serializer):
         max_digits=14,
         decimal_places=2,
     )
+    items = ProductCommissionDetailSerializer(many=True)
 
 
 class CommissionReportSerializer(serializers.Serializer):

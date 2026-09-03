@@ -105,6 +105,9 @@ class CommissionService:
                 'seller_id': seller['id'],
                 'seller_name': seller['name'],
                 'commission_total': Decimal('0.00'),
+                # Durante o cálculo, o dicionário permite acumular rapidamente
+                # as vendas do mesmo produto, mesmo que estejam em notas distintas.
+                'items_by_product': {},
             }
             for seller in CommissionRepository.list_sellers()
         }
@@ -124,6 +127,33 @@ class CommissionService:
                 )
                 commission = cls._calculate_item_commission(item, percentage)
                 sellers[sale.seller_id]['commission_total'] += commission
+
+                # O detalhe agrupa o produto dentro do período consultado.
+                # O valor vendido usa o preço histórico gravado no SaleItem.
+                item_total = item.quantity * item.unit_price
+                product_detail = sellers[sale.seller_id][
+                    'items_by_product'
+                ].setdefault(
+                    item.product_id,
+                    {
+                        'product_id': item.product_id,
+                        'product_name': item.product.description,
+                        'quantity': 0,
+                        'total_amount': Decimal('0.00'),
+                        'commission_total': Decimal('0.00'),
+                    },
+                )
+                product_detail['quantity'] += item.quantity
+                product_detail['total_amount'] += item_total
+                product_detail['commission_total'] += commission
+
+        # A estrutura temporária de busca vira a lista pública devolvida pela API.
+        # Ordenar por produto mantém a expansão previsível para o usuário.
+        for seller in sellers.values():
+            seller['items'] = sorted(
+                seller.pop('items_by_product').values(),
+                key=lambda item: item['product_name'].casefold(),
+            )
 
         seller_results = list(sellers.values())
 

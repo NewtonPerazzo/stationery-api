@@ -19,6 +19,8 @@ class CommissionRepository:
             # O fim exclusivo inclui todo o último dia sem depender de 23:59:59.
             .filter(sold_at__gte=start_at, sold_at__lt=end_at)
             .select_related('seller')
-            .prefetch_related('items')
+            # Carrega itens e produtos antecipadamente para evitar uma nova
+            # consulta ao banco para cada produto detalhado no relatório.
+            .prefetch_related('items__product')
             .order_by('sold_at')
         )

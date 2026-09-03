@@ -41,6 +41,44 @@ DATABASE_URL=postgresql://usuario:senha@localhost:5432/stationery
 
 As configurações locais ficam no arquivo `.env`, que não deve ser versionado. Use `.env.example` como referência.
 
+## Produção na Vercel
+
+Conecte um PostgreSQL gerenciado ao projeto da API. A aplicação aceita a URL de
+conexão nas variáveis `DATABASE_URL` ou `POSTGRES_URL`. Para o ambiente de
+produção da Vercel, configure também:
+
+```dotenv
+DEBUG=False
+SECRET_KEY=gere-uma-chave-secreta-e-unica
+ALLOWED_HOSTS=stationery-api.vercel.app
+CSRF_TRUSTED_ORIGINS=https://stationery-api.vercel.app
+CORS_ALLOWED_ORIGINS=https://stationery-front.vercel.app
+```
+
+Não coloque credenciais reais no repositório. Alterações nas variáveis da Vercel
+só entram em vigor depois de um novo deployment.
+
+### Migrations e superusuário de produção
+
+As migrations não são executadas automaticamente quando uma Function inicia.
+Execute os comandos uma vez, em um terminal confiável, apontando temporariamente
+para o banco de produção:
+
+```powershell
+$env:DATABASE_URL="URL_DO_POSTGRES_DE_PRODUCAO"
+$env:SECRET_KEY="A_MESMA_SECRET_KEY_DA_PRODUCAO"
+$env:DEBUG="False"
+$env:ALLOWED_HOSTS="stationery-api.vercel.app"
+$env:CSRF_TRUSTED_ORIGINS="https://stationery-api.vercel.app"
+
+.\.venv\Scripts\python.exe manage.py migrate
+.\.venv\Scripts\python.exe manage.py createsuperuser
+```
+
+Depois, o Admin estará disponível em
+`https://stationery-api.vercel.app/admin/` e a API em
+`https://stationery-api.vercel.app/api/`.
+
 ## Organização planejada
 
 O projeto seguirá uma organização pragmática em aplicações de domínio (`people`, `products` e `sales`). O ORM e os recursos nativos do Django serão usados para CRUDs simples; services concentrarão regras de negócio e repositories/query services serão utilizados apenas em consultas mais complexas, como o relatório de comissões.

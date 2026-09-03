@@ -85,11 +85,18 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': env.db(
-        'DATABASE_URL',
+# A integração de Postgres da Vercel pode fornecer DATABASE_URL ou POSTGRES_URL.
+# Localmente, o endereço padrão continua apontando para o PostgreSQL da máquina.
+database_url = env(
+    'DATABASE_URL',
+    default=env(
+        'POSTGRES_URL',
         default='postgresql://postgres:postgres@localhost:5432/stationery',
     ),
+)
+
+DATABASES = {
+    'default': env.db_url_config(database_url),
 }
 
 
@@ -128,6 +135,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
@@ -138,3 +146,18 @@ CORS_ALLOWED_ORIGINS = env.list(
     'CORS_ALLOWED_ORIGINS',
     default=['http://localhost:5173'],
 )
+
+# Autoriza os endereços HTTPS que podem enviar formulários protegidos por CSRF,
+# incluindo o formulário de login do Django Admin em produção.
+CSRF_TRUSTED_ORIGINS = env.list(
+    'CSRF_TRUSTED_ORIGINS',
+    default=[],
+)
+
+if not DEBUG:
+    # A Vercel encerra o HTTPS no proxy e informa o protocolo original neste header.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # Em produção, os cookies de sessão e CSRF do Admin trafegam somente por HTTPS.
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True

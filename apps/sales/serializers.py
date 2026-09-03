@@ -184,6 +184,10 @@ class ProductCommissionDetailSerializer(serializers.Serializer):
         max_digits=14,
         decimal_places=2,
     )
+    commission_percentage = serializers.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+    )
 
 
 class SellerCommissionSerializer(serializers.Serializer):

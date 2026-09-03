@@ -134,13 +134,14 @@ class CommissionService:
                 product_detail = sellers[sale.seller_id][
                     'items_by_product'
                 ].setdefault(
-                    item.product_id,
+                    (item.product_id, percentage),
                     {
                         'product_id': item.product_id,
                         'product_name': item.product.description,
                         'quantity': 0,
                         'total_amount': Decimal('0.00'),
                         'commission_total': Decimal('0.00'),
+                        'commission_percentage': percentage,
                     },
                 )
                 product_detail['quantity'] += item.quantity

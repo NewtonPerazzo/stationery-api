@@ -57,7 +57,7 @@ class WeekdayCommissionRule(models.Model):
             ),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.get_weekday_display()
 
 
@@ -80,7 +80,7 @@ class Sale(models.Model):
     class Meta:
         ordering = ('-sold_at',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.invoice_number
 
 
@@ -130,5 +130,5 @@ class SaleItem(models.Model):
             ),
         ]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.sale.invoice_number} - {self.product}'

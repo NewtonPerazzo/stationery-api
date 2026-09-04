@@ -12,7 +12,7 @@ class Person(models.Model):
         abstract = True
         ordering = ('name',)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 

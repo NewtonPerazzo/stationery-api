@@ -1,4 +1,5 @@
 from decimal import Decimal
+from typing import Any
 
 from rest_framework import serializers
 
@@ -30,7 +31,7 @@ class WeekdayCommissionRuleSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('id', 'weekday_name', 'created_at', 'updated_at')
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         minimum = attrs.get(
             'minimum_percentage',
             getattr(self.instance, 'minimum_percentage', None),
@@ -65,7 +66,7 @@ class SaleItemReadSerializer(serializers.ModelSerializer):
             'total_amount',
         )
 
-    def get_total_amount(self, item):
+    def get_total_amount(self, item: SaleItem) -> str:
         return f'{item.quantity * item.unit_price:.2f}'
 
 
@@ -89,7 +90,7 @@ class SaleReadSerializer(serializers.ModelSerializer):
             'updated_at',
         )
 
-    def get_total_amount(self, sale):
+    def get_total_amount(self, sale: Sale) -> str:
         total = sum(
             (item.quantity * item.unit_price for item in sale.items.all()),
             start=Decimal('0.00'),
@@ -128,7 +129,10 @@ class SaleWriteSerializer(serializers.ModelSerializer):
         )
         read_only_fields = ('id',)
 
-    def validate_items(self, items):
+    def validate_items(
+        self,
+        items: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
         product_ids = [item['product'].pk for item in items]
 
         if len(product_ids) != len(set(product_ids)):
@@ -138,10 +142,14 @@ class SaleWriteSerializer(serializers.ModelSerializer):
 
         return items
 
-    def create(self, validated_data):
+    def create(self, validated_data: dict[str, Any]) -> Sale:
         return SaleService.create(validated_data)
 
-    def update(self, instance, validated_data):
+    def update(
+        self,
+        instance: Sale,
+        validated_data: dict[str, Any],
+    ) -> Sale:
         return SaleService.update(instance, validated_data)
 
 
@@ -160,7 +168,7 @@ class CommissionReportQuerySerializer(serializers.Serializer):
         default='seller_name',
     )
 
-    def validate(self, attrs):
+    def validate(self, attrs: dict[str, Any]) -> dict[str, Any]:
         """Garante que o intervalo esteja em ordem cronológica."""
         if attrs['start_date'] > attrs['end_date']:
             raise serializers.ValidationError({

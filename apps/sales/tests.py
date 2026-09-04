@@ -14,7 +14,7 @@ from .services import CommissionService
 class CommissionServiceTest(TestCase):
     """Testa as principais regras usadas no relatório de comissões."""
 
-    def test_applies_weekday_minimum_and_maximum(self):
+    def test_applies_weekday_minimum_and_maximum(self) -> None:
         """Aplica o piso e o teto configurados para o dia da venda."""
         customer = Customer.objects.create(
             name='Cliente Teste',
@@ -99,7 +99,7 @@ class CommissionServiceTest(TestCase):
         self.assertEqual(seller_result['commission_total'], Decimal('2.70'))
         self.assertEqual(report['grand_total'], Decimal('2.70'))
 
-    def test_keeps_product_percentage_without_weekday_rule(self):
+    def test_keeps_product_percentage_without_weekday_rule(self) -> None:
         """Mantém o percentual do produto quando o dia não tem regra."""
         percentage = CommissionService._get_applied_percentage(
             product_percentage=Decimal('4.00'),

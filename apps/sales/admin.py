@@ -13,7 +13,7 @@ class WeekdayCommissionRuleAdmin(admin.ModelAdmin):
     ordering = ('weekday',)
 
     @admin.display(description='Dia da semana', ordering='weekday')
-    def weekday_name(self, rule):
+    def weekday_name(self, rule: WeekdayCommissionRule) -> str:
         return rule.get_weekday_display()
 
 

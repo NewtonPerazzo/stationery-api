@@ -3,7 +3,9 @@ from decimal import Decimal
 from django.db.models import DecimalField, ExpressionWrapper, F, Sum, Value
 from django.db.models.functions import Coalesce
 from rest_framework.filters import OrderingFilter, SearchFilter
+from rest_framework.request import Request
 from rest_framework.response import Response
+from rest_framework.serializers import BaseSerializer
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
@@ -51,7 +53,7 @@ class SaleViewSet(ModelViewSet):
     ordering_fields = ('invoice_number', 'total_amount')
     ordering = ('invoice_number',)
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[BaseSerializer]:
         if self.action in ('create', 'update', 'partial_update'):
             return SaleWriteSerializer
 
@@ -61,7 +63,7 @@ class SaleViewSet(ModelViewSet):
 class CommissionReportView(APIView):
     """Retorna as comissões agrupadas por vendedor em um período."""
 
-    def get(self, request):
+    def get(self, request: Request) -> Response:
         """Valida as datas, executa a regra e serializa o resultado."""
         query_serializer = CommissionReportQuerySerializer(
             data=request.query_params,

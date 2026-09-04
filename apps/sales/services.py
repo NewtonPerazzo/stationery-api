@@ -1,5 +1,6 @@
-from datetime import datetime, time, timedelta
+from datetime import date, datetime, time, timedelta
 from decimal import Decimal, ROUND_HALF_UP
+from typing import Any
 
 from django.db import transaction
 from django.utils import timezone
@@ -13,7 +14,7 @@ class SaleService:
 
     @staticmethod
     @transaction.atomic
-    def create(validated_data):
+    def create(validated_data: dict[str, Any]) -> Sale:
         """Cria uma venda completa dentro de uma única transação."""
         items_data = validated_data.pop('items')
         sale = Sale.objects.create(**validated_data)
@@ -22,7 +23,7 @@ class SaleService:
 
     @staticmethod
     @transaction.atomic
-    def update(sale, validated_data):
+    def update(sale: Sale, validated_data: dict[str, Any]) -> Sale:
         """Atualiza os dados e substitui os itens quando forem enviados."""
         items_data = validated_data.pop('items', None)
 
@@ -45,7 +46,10 @@ class SaleService:
         return sale
 
     @staticmethod
-    def _replace_items(sale, items_data):
+    def _replace_items(
+        sale: Sale,
+        items_data: list[dict[str, Any]],
+    ) -> None:
         """Cria os itens recebidos para a venda informada."""
 
         # O preço e a comissão são copiados do produto para o SaleItem.
@@ -71,11 +75,11 @@ class CommissionService:
     @classmethod
     def build_report(
         cls,
-        start_date,
-        end_date,
-        search='',
-        ordering='seller_name',
-    ):
+        start_date: date,
+        end_date: date,
+        search: str = '',
+        ordering: str = 'seller_name',
+    ) -> dict[str, Any]:
         """Retorna totais por vendedor e o total geral do período."""
         current_timezone = timezone.get_current_timezone()
 
@@ -189,7 +193,10 @@ class CommissionService:
         }
 
     @staticmethod
-    def _get_applied_percentage(product_percentage, rule):
+    def _get_applied_percentage(
+        product_percentage: Decimal,
+        rule: WeekdayCommissionRule | None,
+    ) -> Decimal:
         """Aplica os limites do dia ou mantém a comissão original."""
         if rule is None:
             return product_percentage
@@ -201,7 +208,11 @@ class CommissionService:
         )
 
     @classmethod
-    def _calculate_item_commission(cls, item, percentage):
+    def _calculate_item_commission(
+        cls,
+        item: SaleItem,
+        percentage: Decimal,
+    ) -> Decimal:
         """Calcula e arredonda a comissão monetária de um item."""
         commission = (
             item.quantity

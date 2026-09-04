@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from django.db.models import QuerySet
+
 from apps.people.models import Seller
 
 from .models import Sale
@@ -7,12 +11,15 @@ class CommissionRepository:
     """Centraliza as consultas usadas pelo relatório de comissões."""
 
     @staticmethod
-    def list_sellers():
+    def list_sellers() -> QuerySet:
         """Retorna todos os vendedores na ordem exibida pelo relatório."""
         return Seller.objects.order_by('name').values('id', 'name')
 
     @staticmethod
-    def list_sales_between(start_at, end_at):
+    def list_sales_between(
+        start_at: datetime,
+        end_at: datetime,
+    ) -> QuerySet[Sale]:
         """Busca vendas no intervalo [início, fim), com dados relacionados."""
         return (
             Sale.objects
